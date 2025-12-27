@@ -11,7 +11,6 @@ from collections import defaultdict,deque
 # s=list(input())
 # grid=[list(input()) for _ in range(h)]
 
-
 def op(a, b):
     """
     segment treeに作用させる関数    
