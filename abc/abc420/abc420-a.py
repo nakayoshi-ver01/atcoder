@@ -1,0 +1,17 @@
+# from collections import defaultdict,deque
+# from sortedcontainers import SortedList, SortedSet
+# import sys
+# sys.setrecursionlimit(10**9)
+# import math
+# import bisect
+# import heapq
+# n=int(input())
+n,m=map(int,input().split())
+# a=list(map(int,input().split()))
+# s=list(input())
+# grid=[list(input()) for _ in range(h)]
+
+if (n+m)%12>0:
+    print((n+m)%12)
+else:
+    print(12)

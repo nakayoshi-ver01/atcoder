@@ -1,0 +1,7 @@
+n=int(input())
+# n,m=map(int,input().split())
+a=set(map(int,input().split()))
+# s=list(input())
+a=list(a)
+a.sort()
+print(a[-2])

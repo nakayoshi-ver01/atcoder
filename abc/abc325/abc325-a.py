@@ -1,0 +1,5 @@
+#n=int(input())
+n,m=map(str,input().split())
+#a=list(map(int,input().split()))
+#s=list(input())
+print(n+' '+'san')
