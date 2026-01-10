@@ -6,7 +6,15 @@
 # import bisect
 # import heapq
 # n=int(input())
-# n,m=map(int,input().split())
+d,f=map(int,input().split())
 # a=list(map(int,input().split()))
 # s=list(input())
 # grid=[list(input()) for _ in range(h)]
+ans=f
+while ans<d:
+    ans+=7
+
+if ans%d==0:
+    print(7)
+else:
+    print((ans%d))
