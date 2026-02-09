@@ -3,3 +3,10 @@ q)V75F(gm/pMcM!
 
 アカウントID
 6385-3555-0168:nkhm_yshk
+
+
+
+ユーザー: arn:aws:iam::638535550168:user/aws_yoshi
+アクション: iam:ListRoles
+リソース : arn:aws:iam::638535550168:role/
+コンテキスト: no identity-based policy allows the action

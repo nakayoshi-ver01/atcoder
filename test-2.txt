@@ -1,0 +1,29 @@
+def op(a,b):
+    return a+b
+
+class SegmentTree:
+    def __init__(self,op,ele,size,ini_value):
+        self.op=op
+        self.ele=ele
+        self.size=size
+        k=size
+        self.level=0
+        while k>0:
+            self.level+=1
+            k//=2
+        self.mapping=[self.ele for _ in range(2**self.level+1)]
+        self.mapping+=ini_value
+        self.init_update(1)
+    
+    def init_update(self,n):
+        if n*2+1<2**self.level+1+self.size:
+            self.mapping[n] = self.init_update(n*2) + self.init_update(n*2+1)
+        elif n*2<2**self.level+1+self.size:
+            self.mapping[n] = self.init_update(n*2)
+
+        return self.mapping[n]
+ini_value=[i for i in range(10)]
+
+seg=SegmentTree(op,0,10,ini_value)
+
+print(seg.mapping)
