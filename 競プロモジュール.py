@@ -51,11 +51,30 @@ while len(node)>0:
     count+=1
 print(count)
 
-#高速素因数分解
+
+#高速素因数分解(素数列挙+素因数分解)
+def eratosthenes(n):
+    is_prime = [False, False] + [True] * (n-1)
+    for p in range(2, n+1):
+        if not(is_prime[p]):
+            continue
+        for k in range(p*2, n+1, p):
+            is_prime[k] = False
+    return is_prime
+
+k=eratosthenes(10**7+1)
+prime_numbers=[]
+for i in range(10**7+1):
+    if k[i]:
+        prime_numbers.append(i)
+
 def factorization(n):
+    global prime_numbers
     arr = []
     temp = n
-    for i in range(2, int(-(-n**0.5//1))+1):
+    for i in prime_numbers:
+        if i**2>n:
+            break
         if temp%i==0:
             cnt=0
             while temp%i==0:
@@ -596,9 +615,9 @@ class SegTree:
     def set(self, p, x):#セグ木に値を入れる
         p += self._size
         self._d[p] = x
-        while p:
-            self._d[p >> 1] = self._op(self._d[p], self._d[p ^ 1])
+        while p > 1:
             p >>= 1
+            self._d[p] = self._op(self._d[p << 1], self._d[p << 1 | 1])
 
     def get(self, p):#セグ木の値を取り出す
         return self._d[p + self._size]
@@ -636,6 +655,119 @@ for i in range(n):
     else:
         print(seg.prod(i,min(i+2,n-1)))
     seg.check()
+
+#fenwick木(BIT)
+class FenwickTree:
+    """
+    区間和・点更新が O(log n) の Fenwick 木
+
+    Attributes
+    --------------------
+    n : int
+        要素数
+    data : list
+        内部配列(1-indexed)
+    """
+
+    def __init__(self, n, v=None):
+        """
+        Parameters
+        ---------------------
+        n : int
+            要素数
+        v : list, optional
+            初期値(0-indexed)。省略時は全て 0
+        """
+        self.n = n
+        self.data = [0] * (n + 1)
+        if v is not None:
+            for i, x in enumerate(v):
+                self.add(i, x)
+
+    def add(self, p, x):
+        """
+        A[p] に x を加算
+
+        Parameters
+        ---------------------
+        p : int
+            更新位置(0-indexed)
+        x : int
+            加算する値
+        """
+        p += 1
+        while p <= self.n:
+            self.data[p] += x
+            p += p & -p
+
+    def set(self, p, x):
+        """
+        A[p] を x に更新
+
+        Parameters
+        ---------------------
+        p : int
+            更新位置(0-indexed)
+        x : int
+            代入する値
+        """
+        self.add(p, x - self.get(p))
+
+    def get(self, p):
+        """
+        A[p] を取得
+
+        Parameters
+        ---------------------
+        p : int
+            取得位置(0-indexed)
+
+        Returns
+        ---------------------
+        ans : int
+            A[p] の値
+        """
+        return self.prod(p, p + 1)
+
+    def _sum(self, r):
+        """[0, r) の和"""
+        s = 0
+        while r > 0:
+            s += self.data[r]
+            r -= r & -r
+        return s
+
+    def prod(self, l, r):
+        """
+        [l, r) の区間和
+
+        Parameters
+        ---------------------
+        l : int
+            左端(含む, 0-indexed)
+        r : int
+            右端(含まない, 0-indexed)
+
+        Returns
+        ---------------------
+        ans : int
+            区間和
+        """
+        return self._sum(r) - self._sum(l)
+
+    def all_prod(self):
+        """全体の和"""
+        return self._sum(self.n)
+
+#確認(転倒数カウント)
+# n = int(input())
+# A = list(map(int, input().split()))
+# bit = FenwickTree(n)
+# inv = 0
+# for val, idx in sorted((A[i], i) for i in range(n)):
+#     inv += bit.prod(idx + 1, n)  # 右側の和
+#     bit.add(idx, 1)
+# print(inv)
 
 #トポロジカルソート
 from collections import defaultdict
@@ -1086,3 +1218,480 @@ def eratosthenes(n):
         for k in range(p*2, n+1, p):
             is_prime[k] = False
     return is_prime
+
+# 分割
+
+n,m=map(int,input().split())
+w=list(map(int,input().split()))
+c=list(map(int,input().split()))
+
+w.sort(reverse=True)
+c.sort(reverse=True)
+def split(trucks,i):
+    '''
+    Docstring for split
+    
+    :param trucks: 状態
+    :param i: 追加対象
+
+    w,c: リスト
+    n,m: w,cのリスト長
+    '''
+    global w
+    global c
+    global n
+    global m
+    ans='No'
+    if i==n:
+        return 'Yes'
+    
+    for j in range(len(trucks)):
+        if trucks[j]+w[i]<=c[j]:
+            # 追加→再帰→元の状態に戻す
+            trucks[j]+=w[i]
+            ans=split(trucks,i+1)
+            trucks[j]-=w[i]
+        if ans=='Yes':
+            # okパターンが見つかったら即終了
+            return ans
+    
+    if len(trucks)<m and w[i]<=c[j+1]:
+        # 追加→再帰→元の状態に戻す
+        trucks.append(w[i])
+        ans=split(trucks,i+1)
+        del trucks[-1]
+        if ans=='Yes':
+            # okパターンが見つかったら即終了
+            return ans
+    else:
+        # 途中で追加できなくなったらそれ以降も追加できない
+        return 'No'
+    
+    return ans
+
+
+# コンビネーションやり方2選
+# 1.すべて階乗を用いる方法
+
+MOD=998244353
+
+kaijo_log=[1]
+for i in range(1,n+1):
+    kaijo_log.append((kaijo_log[-1]*i)%MOD)
+
+def combination(n,r):
+    # 事前計算でn!,n-r!,r!を用意しておいて、nCrを計算する,(n,rともに一定の範囲内で何度も計算する場合に有効)
+    return (kaijo_log[n]*pow(kaijo_log[r],MOD-2,MOD)*pow(kaijo_log[n-r],MOD-2,MOD))%MOD
+
+
+# 2.分子だけ階乗を用いる方法
+
+def kaijomod(gl,num):
+    '''
+    gl:かける最大の数,num:かける個数
+    gl=5,num=3なら5*4*3
+    '''
+    ans=1
+    for i in range(num):
+        ans*=gl-i
+        ans%=MOD
+    return ans
+
+def combination_2(n,r):
+    # nPrを実際に計算してからr!で割る(nが巨大かつrが小さい場合に有効)
+    return (kaijomod(n,r)*pow(kaijo_log[r],MOD-2,MOD))%MOD
+
+
+# Floor Sum
+def floor_sum(n, m, a, b):
+    """
+    sum(floor((a*i+b)/m) for i in range(n)) を O(log(max(a, m))) で求める。
+
+    n >= 0, m >= 1
+    a, b は負でもよい。
+    """
+    assert n >= 0 and m >= 1
+
+    # a, b を 0 <= a, b < m に正規化し、商の寄与を先に加える
+    qa, a = divmod(a, m)
+    qb, b = divmod(b, m)
+    ans = qa * n * (n - 1) // 2 + qb * n
+
+    while True:
+        # a, b が m 以上なら、その整数部分を答えに加える
+        if a >= m:
+            ans += (n - 1) * n * (a // m) // 2
+            a %= m
+        if b >= m:
+            ans += n * (b // m)
+            b %= m
+
+        y_max = a * n + b
+        if y_max < m:
+            return ans
+
+        # 格子点の数え上げで x 軸と y 軸を入れ替える
+        n, b = divmod(y_max, m)
+        m, a = a, m
+
+
+# Trie木
+class Trie:
+    """
+    文字列の挿入・検索・接頭辞カウントが O(|S|) の Trie 木
+
+    Attributes
+    --------------------
+    root : Node
+        根ノード
+    """
+
+    class Node:
+        def __init__(self):
+            self.child = {}
+            self.cnt = 0  # このノードを通る文字列の個数
+            self.end = 0  # このノードで終わる文字列の個数
+
+    def __init__(self):
+        self.root = self.Node()
+
+    def insert(self, s):
+        """
+        文字列 s を挿入
+
+        Parameters
+        ---------------------
+        s : str
+            挿入する文字列
+        """
+        nd = self.root
+        nd.cnt += 1
+        for c in s:
+            if c not in nd.child:
+                nd.child[c] = self.Node()
+            nd = nd.child[c]
+            nd.cnt += 1
+        nd.end += 1
+
+    def delete(self, s):
+        """
+        文字列 s を 1 つ削除(存在しなければ何もしない)
+
+        Parameters
+        ---------------------
+        s : str
+            削除する文字列
+
+        Returns
+        ---------------------
+        ans : bool
+            削除できたか
+        """
+        if self.count(s) == 0:
+            return False
+        nd = self.root
+        nd.cnt -= 1
+        for c in s:
+            nd = nd.child[c]
+            nd.cnt -= 1
+        nd.end -= 1
+        return True
+
+    def _walk(self, s):
+        nd = self.root
+        for c in s:
+            if c not in nd.child:
+                return None
+            nd = nd.child[c]
+        return nd
+
+    def count(self, s):
+        """
+        文字列 s と完全一致する個数
+
+        Parameters
+        ---------------------
+        s : str
+            検索する文字列
+
+        Returns
+        ---------------------
+        ans : int
+            完全一致する個数
+        """
+        nd = self._walk(s)
+        return 0 if nd is None else nd.end
+
+    def count_prefix(self, s):
+        """
+        接頭辞が s である文字列の個数
+
+        Parameters
+        ---------------------
+        s : str
+            接頭辞
+
+        Returns
+        ---------------------
+        ans : int
+            接頭辞が s である個数
+        """
+        nd = self._walk(s)
+        return 0 if nd is None else nd.cnt
+
+    def search(self, s):
+        """
+        文字列 s が存在するか判定
+
+        Parameters
+        ---------------------
+        s : str
+            検索する文字列
+
+        Returns
+        ---------------------
+        ans : bool
+            存在するか
+        """
+        return self.count(s) > 0
+
+    def starts_with(self, s):
+        """
+        接頭辞 s を持つ文字列が存在するか判定
+
+        Parameters
+        ---------------------
+        s : str
+            接頭辞
+
+        Returns
+        ---------------------
+        ans : bool
+            存在するか
+        """
+        return self.count_prefix(s) > 0
+
+    def __contains__(self, s):
+        return self.search(s)
+
+    def __len__(self):
+        return self.root.cnt
+
+#確認
+# trie = Trie()
+# trie.insert("abc")
+# trie.insert("abd")
+# trie.insert("abc")
+# print(trie.search("abc"))        # True
+# print(trie.count("abc"))         # 2
+# print(trie.count_prefix("ab"))   # 3
+# print(trie.starts_with("ac"))    # False
+# trie.delete("abc")
+# print(trie.count("abc"))         # 1
+# print("abc" in trie)             # True
+# print(len(trie))                 # 2
+
+
+# Binary Trie(XOR用)
+class BinaryTrie:
+    """
+    非負整数の挿入・削除・XOR最大/最小が O(bit) の Binary Trie
+
+    Attributes
+    --------------------
+    bit : int
+        扱うビット長(32 なら [0, 2^32)、60 なら 10^18 まで)
+    child : list
+        各ノードの子 [0側, 1側] (無い場合は -1)
+    cnt : list
+        各ノードを通る整数の個数
+    """
+
+    def __init__(self, bit_length=32):
+        """
+        Parameters
+        ---------------------
+        bit_length : int
+            扱うビット長。A_i < 2^30 なら 30、10^18 なら 60
+        """
+        self.bit = bit_length
+        self.child = [[-1, -1]]
+        self.cnt = [0]
+
+    def _new_node(self):
+        self.child.append([-1, -1])
+        self.cnt.append(0)
+        return len(self.child) - 1
+
+    def insert(self, x, count=1):
+        """
+        整数 x を count 個挿入
+
+        Parameters
+        ---------------------
+        x : int
+            挿入する非負整数
+        count : int
+            挿入する個数
+        """
+        v = 0
+        self.cnt[v] += count
+        for i in range(self.bit - 1, -1, -1):
+            b = (x >> i) & 1
+            if self.child[v][b] == -1:
+                self.child[v][b] = self._new_node()
+            v = self.child[v][b]
+            self.cnt[v] += count
+
+    def delete(self, x, count=1):
+        """
+        整数 x を count 個削除(存在しなければ何もしない)
+
+        Parameters
+        ---------------------
+        x : int
+            削除する非負整数
+        count : int
+            削除する個数
+
+        Returns
+        ---------------------
+        ans : bool
+            削除できたか
+        """
+        if self.count(x) < count:
+            return False
+        v = 0
+        self.cnt[v] -= count
+        for i in range(self.bit - 1, -1, -1):
+            b = (x >> i) & 1
+            v = self.child[v][b]
+            self.cnt[v] -= count
+        return True
+
+    def count(self, x):
+        """
+        整数 x の個数
+
+        Parameters
+        ---------------------
+        x : int
+            検索する非負整数
+
+        Returns
+        ---------------------
+        ans : int
+            x の個数
+        """
+        v = 0
+        for i in range(self.bit - 1, -1, -1):
+            b = (x >> i) & 1
+            if self.child[v][b] == -1:
+                return 0
+            v = self.child[v][b]
+        return self.cnt[v]
+
+    def xor_max(self, x):
+        """
+        集合内の y について x XOR y の最大値を返す(空なら None)
+
+        Parameters
+        ---------------------
+        x : int
+            XOR する値
+
+        Returns
+        ---------------------
+        ans : int or None
+            最大の XOR 値
+        """
+        if self.cnt[0] == 0:
+            return None
+        v = 0
+        ans = 0
+        for i in range(self.bit - 1, -1, -1):
+            b = (x >> i) & 1
+            want = b ^ 1
+            nxt = self.child[v][want]
+            if nxt != -1 and self.cnt[nxt] > 0:
+                ans |= 1 << i
+                v = nxt
+            else:
+                v = self.child[v][b]
+        return ans
+
+    def xor_min(self, x):
+        """
+        集合内の y について x XOR y の最小値を返す(空なら None)
+
+        Parameters
+        ---------------------
+        x : int
+            XOR する値
+
+        Returns
+        ---------------------
+        ans : int or None
+            最小の XOR 値
+        """
+        if self.cnt[0] == 0:
+            return None
+        v = 0
+        ans = 0
+        for i in range(self.bit - 1, -1, -1):
+            b = (x >> i) & 1
+            nxt = self.child[v][b]
+            if nxt != -1 and self.cnt[nxt] > 0:
+                v = nxt
+            else:
+                ans |= 1 << i
+                v = self.child[v][b ^ 1]
+        return ans
+
+    def kth(self, k):
+        """
+        小さい方から k 番目(0-indexed)の値を返す
+
+        Parameters
+        ---------------------
+        k : int
+            順位(0-indexed)
+
+        Returns
+        ---------------------
+        ans : int or None
+            k 番目の値。範囲外なら None
+        """
+        if k < 0 or k >= self.cnt[0]:
+            return None
+        v = 0
+        ans = 0
+        for i in range(self.bit - 1, -1, -1):
+            left = self.child[v][0]
+            left_cnt = self.cnt[left] if left != -1 else 0
+            if k < left_cnt:
+                v = left
+            else:
+                k -= left_cnt
+                ans |= 1 << i
+                v = self.child[v][1]
+        return ans
+
+    def __len__(self):
+        return self.cnt[0]
+
+    def __contains__(self, x):
+        return self.count(x) > 0
+
+#確認
+# bt = BinaryTrie(4)  # [0, 16) まで
+# bt.insert(3)
+# bt.insert(5)
+# bt.insert(10)
+# print(bt.xor_max(6))   # 12 (6 XOR 10)
+# print(bt.xor_min(6))   # 1  (6 XOR 5)
+# print(bt.kth(0))       # 3
+# print(bt.kth(2))       # 10
+# bt.delete(5)
+# print(5 in bt)         # False
+# print(len(bt))         # 2
