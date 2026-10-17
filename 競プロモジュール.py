@@ -1695,3 +1695,138 @@ class BinaryTrie:
 # bt.delete(5)
 # print(5 in bt)         # False
 # print(len(bt))         # 2
+
+
+# 木の重心
+# 頂点 v を取り除いたとき、残る各連結成分の大きさがすべて floor(n/2) 以下なら v は重心。
+# 木の重心は必ず 1 個か 2 個で、2 個のときは隣接する。
+# 辺は両方向に入れた辞書で渡す。例: 1-2, 2-3 → {1:{2}, 2:{1,3}, 3:{2}}
+# 任意の頂点を根に部分木サイズを求め、子方向と親方向がすべて floor(n/2) 以下か見る。
+# 部分木サイズはスタックで求める。長いパスでも再帰上限は不要。
+def tree_centroids(g):
+    """
+    木の重心をすべて求める。O(頂点数)
+
+    重心
+    --------------------
+    頂点 v を取り除いたあと、残る各連結成分の大きさが
+    すべて n//2 以下である頂点。
+    どの頂点からも最も遠い頂点までの距離を最小にする頂点でもある。
+    重心は 1 個または 2 個。2 個ならそれらは辺でつながっている。
+
+    手順
+    --------------------
+    1. 辞書にある任意の頂点を根にしてスタックでたどり、部分木サイズ size[v] を求める。
+    2. v を消したときの連結成分は次と 1 対 1 に対応する。
+         - 各子 u の側: 大きさ size[u]
+         - 親の側: 大きさ n - size[v] (根なら 0)
+       これらがすべて n//2 以下なら v は重心。
+    3. 全頂点を同じ条件で調べ、当てはまるものを集める。
+
+    size[u] > n//2 となる子は高々 1 つなので、
+    その子へ降り続ければ重心の 1 つに必ず着く(tree_centroid)。
+
+    Parameters
+    ---------------------
+    g : dict[int, set[int]]
+        無向木。キーが頂点、値が隣接頂点の集合。
+        辺は両方向に入れ、全部の頂点をキーにする。
+        例: {1: {2}, 2: {1, 3}, 3: {2}}
+
+    Returns
+    ---------------------
+    centroids : list[int]
+        重心の頂点番号。長さは 1 または 2
+    """
+    n = len(g)
+    if n == 0:
+        return []
+    root = next(iter(g))
+    parent = {root: None}
+    order = []
+    st = [root]
+    while st:
+        v = st.pop()
+        order.append(v)
+        for u in g[v]:
+            if u not in parent:
+                parent[u] = v
+                st.append(u)
+
+    size = {v: 1 for v in order}
+    for v in reversed(order):
+        p = parent[v]
+        if p is not None:
+            size[p] += size[v]
+
+    half = n // 2
+    centroids = []
+    for v in order:
+        if n - size[v] > half:
+            continue
+        if any(u != parent[v] and size[u] > half for u in g[v]):
+            continue
+        centroids.append(v)
+    return centroids
+
+
+def tree_centroid(g):
+    """
+    木の重心を 1 つ求める。O(頂点数)
+
+    辞書にある任意の頂点を根に、スタックで部分木サイズを求めたあと、
+    size[u] > n//2 の子がある限りその子へ降りる。
+    そのような子は高々 1 つで、無くなった頂点が重心。
+    重心が 2 個あるときは、根から見て重い側のほうを返す。
+
+    Parameters
+    ---------------------
+    g : dict[int, set[int]]
+        無向木。キーが頂点、値が隣接頂点の集合。
+        辺は両方向に入れ、全部の頂点をキーにする。
+        例: {1: {2}, 2: {1, 3}, 3: {2}}
+
+    Returns
+    ---------------------
+    centroid : int
+        重心の頂点番号
+    """
+    n = len(g)
+    root = next(iter(g))
+    parent = {root: None}
+    order = []
+    st = [root]
+    while st:
+        v = st.pop()
+        order.append(v)
+        for u in g[v]:
+            if u not in parent:
+                parent[u] = v
+                st.append(u)
+
+    size = {v: 1 for v in order}
+    for v in reversed(order):
+        p = parent[v]
+        if p is not None:
+            size[p] += size[v]
+
+    v, p = root, None
+    half = n // 2
+    while True:
+        heavy = None
+        for u in g[v]:
+            if u != p and size[u] > half:
+                heavy = u
+                break
+        if heavy is None:
+            return v
+        p, v = v, heavy
+
+#確認
+# パス 1-2-3-4 の重心は 2 と 3。星の中心 1 だけが重心。
+# g = {1: {2}, 2: {1, 3}, 3: {2, 4}, 4: {3}}
+# print(sorted(tree_centroids(g)))  # [2, 3]
+# print(tree_centroid(g))           # 2 または 3
+# star = {1: {2, 3, 4, 5}, 2: {1}, 3: {1}, 4: {1}, 5: {1}}
+# print(tree_centroids(star))       # [1]
+# print(tree_centroid(star))        # 1
