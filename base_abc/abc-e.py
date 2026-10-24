@@ -1,3 +1,6 @@
+# 事前準備したモジュールは以下のサイトに公開済み
+# https://atcoder.jp/contests/abc100/submissions/80089964
+
 # from collections import defaultdict,deque
 # from sortedcontainers import SortedList, SortedSet
 # import sys

@@ -1830,3 +1830,35 @@ def tree_centroid(g):
 # star = {1: {2, 3, 4, 5}, 2: {1}, 3: {1}, 4: {1}, 5: {1}}
 # print(tree_centroids(star))       # [1]
 # print(tree_centroid(star))        # 1
+
+# 偏角ソート
+from functools import cmp_to_key
+
+def cmp_func(pa,pb):
+    if pa[0]*pb[1]-pa[1]*pb[0]>0:
+        return -1
+    else:
+        return 1
+
+
+n=int(input())
+pos_side=[]
+neg_side=[]
+for i in range(n):
+    x,y=map(int,input().split())
+    if x>0:
+        pos_side.append((x,y))
+    elif x<0:
+        neg_side.append((x,y))
+    else:
+        if y>0:
+            pos_side.append((x,y))
+        else:
+            neg_side.append((x,y))
+pos_side.sort(key=cmp_to_key(cmp_func))
+neg_side.sort(key=cmp_to_key(cmp_func))
+cycle=[]
+for i in pos_side:
+    cycle.append(i)
+for i in neg_side:
+    cycle.append(i)
